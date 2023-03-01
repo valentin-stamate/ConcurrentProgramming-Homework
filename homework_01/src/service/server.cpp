@@ -3,24 +3,22 @@
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <thread>
+#include <fcntl.h>
 #include "../const/const.h"
-#include <arpa/inet.h>
+#include "util.h"
+
+using namespace std;
 
 void Server::startTCP(int port) {
     int server_fd;
-    int new_socket;
-    int valread;
 
     struct sockaddr_in address;
 
     int opt = 1;
     int addrlen = sizeof(address);
-
-    char buffer[BYTES] = {0};
-    char* hello = strdup("Hello from server");
 
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -49,21 +47,75 @@ void Server::startTCP(int port) {
         exit(EXIT_FAILURE);
     }
 
-    if ((new_socket = accept(server_fd, (struct sockaddr*) &address,(socklen_t*)&addrlen)) < 0) {
-        perror("accept");
-        exit(EXIT_FAILURE);
+    int clientId = 1;
+
+    while (true) {
+        int client_fd;
+
+        if ((client_fd = accept(server_fd, (struct sockaddr*) &address,(socklen_t*) &addrlen)) < 0) {
+            perror("accept");
+            exit(EXIT_FAILURE);
+        }
+
+        printf("Starting thread\n");
+
+        /* Start a new thread handling the client */
+        new thread(serverJob, client_fd, clientId);
+
+        clientId++;
     }
 
-    read(new_socket, buffer, BYTES);
-    printf("%s\n", buffer);
-
-    send(new_socket, hello, strlen(hello), 0);
-    printf("Hello message sent\n");
-
-    // closing the connected socket
-    close(new_socket);
     // closing the listening socket
     shutdown(server_fd, SHUT_RDWR);
+}
+
+void Server::serverJob(int client_fd, int client_id) {
+    printf("[Client %d] Running job for client\n", client_id);
+
+    char fileName[] = "files/video.mkv";
+
+    char buffer[BYTES] = "";
+    int fd = open(fileName, O_RDONLY);
+
+    int openSuccess = 0;
+    if (fd < 0) {
+        printf("Error opening file\n");
+        close(client_fd);
+        return;
+    }
+
+    openSuccess = 1;
+
+    printf("[Client %d] Sending confirmation regarding the file opening\n", client_id);
+    write(client_fd, &openSuccess, sizeof(int));
+
+    long int fileSize = Util::getFileSize(fileName);
+    int chunks = (fileSize / BYTES) + (fileSize % BYTES != 0);
+
+    printf("[Client %d] File size %ld. Sending the number of chunks: %d\n", client_id, fileSize, chunks);
+    write(client_fd, &chunks, sizeof(int));
+
+    /* Sending the file */
+    for (int i = 0; i < chunks; i++) {
+        int bytesRead = read(fd, buffer, BYTES);
+        write(client_fd, &bytesRead, sizeof(bytesRead));
+
+        write(client_fd, buffer, bytesRead);
+    }
+
+    close(fd);
+
+    printf("Done\n");
+
+//    printf("Readdmi\n");
+//    read(client_fd, buffer, BYTES);
+//    printf("%s\n", buffer);
+//
+//    printf("Sending\n");
+//    send(client_fd, message, BYTES, 0);
+//    printf("Hello message sent\n");
+
+    close(client_fd);
 }
 
 void Server::startUDP(int port) {

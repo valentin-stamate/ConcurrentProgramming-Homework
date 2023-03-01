@@ -8,6 +8,8 @@ private:
 public:
     void startTCP(int port);
     void startUDP(int port);
+
+    static void serverJob(int client_fd, int client_id);
 };
 
 

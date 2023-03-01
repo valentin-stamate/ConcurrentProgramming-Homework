@@ -4,7 +4,8 @@
 
 class Util {
 public:
-    char* getIp();
+    static char* getIp();
+    static long int getFileSize(char* fileName);
 };
 
 

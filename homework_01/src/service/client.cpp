@@ -6,19 +6,17 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include "../const/const.h"
 
 void Client::startTCP(char* ip, int port) {
-    int status;
-    int valread;
-    int client_fd;
+    int server_fd;
 
     struct sockaddr_in serv_addr;
 
-    char* hello = strdup("Hello from client");
     char buffer[BYTES] = {0};
 
-    if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
         return;
     }
@@ -32,19 +30,43 @@ void Client::startTCP(char* ip, int port) {
         return;
     }
 
-    if ((status = connect(client_fd, (struct sockaddr*)&serv_addr,sizeof(serv_addr))) < 0) {
+    if (connect(server_fd, (struct sockaddr*)&serv_addr,sizeof(serv_addr)) < 0) {
         printf("\nConnection Failed \n");
         return;
     }
 
-    send(client_fd, hello, strlen(hello), 0);
-    printf("Hello message sent\n");
+    int openFileSuccess = 0;
 
-    read(client_fd, buffer, BYTES);
-    printf("%s\n", buffer);
+    read(server_fd, &openFileSuccess, sizeof(int));
 
-    // closing the connected socket
-    close(client_fd);
+    if (openFileSuccess == 0) {
+        printf("Server could not open the file. Closing connection...\n");
+        close(server_fd);
+        return;
+    }
+
+    printf("Server successfully opening the file. The server will now attempt to send the file\n");
+
+    int chunks;
+    read(server_fd, &chunks, sizeof(int));
+    printf("The server will send %d chunks of %db\n", chunks, BYTES);
+
+    /* Creating the file */
+    int fd = open("file.mkv", O_CREAT | O_WRONLY, 0777);
+
+    for (int i = 0; i < chunks; i++) {
+        int bytesRead;
+        read(server_fd, &bytesRead, sizeof(int));
+
+        read(server_fd, buffer, bytesRead);
+        write(fd, buffer, bytesRead);
+    }
+
+    close(fd);
+
+    printf("Done\n");
+
+    close(server_fd);
 }
 
 void Client::startUDP(char *ip, int port) {

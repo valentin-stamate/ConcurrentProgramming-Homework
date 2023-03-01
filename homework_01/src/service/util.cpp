@@ -22,3 +22,20 @@ char* Util::getIp() {
 
     return text;
 }
+
+long int Util::getFileSize(char *fileName) {
+    FILE *fp = fopen(fileName, "r");
+
+    if (fp==NULL)
+        return -1;
+
+    if (fseek(fp, 0, SEEK_END) < 0) {
+        fclose(fp);
+        return -1;
+    }
+
+    long size = ftell(fp);
+    // release the resources when not required
+    fclose(fp);
+    return size;
+}
