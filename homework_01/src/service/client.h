@@ -6,7 +6,7 @@ using namespace std;
 
 class Client {
 private:
-
+    char filesPath[64] = "client_files";
 public:
     void startTCP(char* ip, int port);
     void startUDP(char* ip, int port);

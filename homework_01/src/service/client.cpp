@@ -35,37 +35,52 @@ void Client::startTCP(char* ip, int port) {
         return;
     }
 
-    int openFileSuccess = 0;
+    printf("Successfully connected with the server\n\n");
 
-    read(server_fd, &openFileSuccess, sizeof(int));
+    int filesCount;
+    read(server_fd, &filesCount, sizeof(int));
+    printf("Server files to be received %d\n", filesCount);
 
-    if (openFileSuccess == 0) {
-        printf("Server could not open the file. Closing connection...\n");
-        close(server_fd);
-        return;
+    for (int i = 0; i < filesCount; i++) {
+        char fileName[512];
+        read(server_fd, &fileName, 512);
+
+        int openSuccess;
+        read(server_fd, &openSuccess, sizeof(int));
+
+        if (openSuccess == 0) {
+            printf("Error opening %s\n", fileName);
+            continue;
+        }
+
+        printf("File %s opened successfully\n", fileName);
+
+        int chunks;
+        read(server_fd, &chunks, sizeof(int));
+        printf("The server will send %d chunks of %db\n", chunks, BYTES);
+
+        /* Creating the file */
+        char filePath[1024];
+        sprintf(filePath, "%s/%s", this->filesPath, fileName);
+        int fd = open(filePath, O_CREAT | O_WRONLY, 0777);
+
+        for (int j = 1; j <= chunks; j++) {
+            int bytesRead;
+            read(server_fd, &bytesRead, sizeof(int));
+
+            /* Sending the confirmation of receiving the package */
+            write(server_fd, &j, sizeof(int));
+
+            printf("[%s][%.2f%%] Read package %d of %dB\n", fileName, 1.0f * j / chunks * 100, j, BYTES);
+            read(server_fd, buffer, bytesRead);
+//            printf("Write to local package %d to file %s\n", j, fileName);
+            write(fd, buffer, bytesRead);
+        }
+
+        close(fd);
     }
 
-    printf("Server successfully opening the file. The server will now attempt to send the file\n");
-
-    int chunks;
-    read(server_fd, &chunks, sizeof(int));
-    printf("The server will send %d chunks of %db\n", chunks, BYTES);
-
-    /* Creating the file */
-    int fd = open("file.mkv", O_CREAT | O_WRONLY, 0777);
-
-    for (int i = 0; i < chunks; i++) {
-        int bytesRead;
-        read(server_fd, &bytesRead, sizeof(int));
-
-        read(server_fd, buffer, bytesRead);
-        write(fd, buffer, bytesRead);
-    }
-
-    close(fd);
-
-    printf("Done\n");
-
+    printf("Done. Closing connection...\n");
     close(server_fd);
 }
 

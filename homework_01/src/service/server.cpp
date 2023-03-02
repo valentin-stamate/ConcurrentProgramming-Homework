@@ -49,6 +49,8 @@ void Server::startTCP(int port) {
 
     int clientId = 1;
 
+    printf("The server is running at 127.0.0.1:%d\n\n", port);
+
     while (true) {
         int client_fd;
 
@@ -72,49 +74,65 @@ void Server::startTCP(int port) {
 void Server::serverJob(int client_fd, int client_id) {
     printf("[Client %d] Running job for client\n", client_id);
 
-    char fileName[] = "files/video.mkv";
+    char folderPath[1024] = "server_files";
 
-    char buffer[BYTES] = "";
-    int fd = open(fileName, O_RDONLY);
+    int fileCount = Util::getFileCount(folderPath);
 
-    int openSuccess = 0;
-    if (fd < 0) {
-        printf("Error opening file\n");
-        close(client_fd);
-        return;
+    printf("[Client %d] Files to be sent %d\n", client_fd, fileCount);
+    write(client_fd, &fileCount, sizeof(int));
+
+    char buffer[BYTES];
+
+    char okMessage[8] = "OK";
+    char failMessage[8] = "FAIL";
+
+    char** files = Util::getFilesFromDirectory(folderPath);
+    for (int i = 0; i < fileCount; i++) {
+        char* filePath = files[i];
+        char* fileName = Util::getFileNameFromPath(filePath);
+
+        write(client_fd, fileName, 512);
+
+        int fd = open(filePath, O_RDONLY);
+
+        int openSuccess = 1;
+        if (fd < 0) {
+            printf("Error opening file %s\n", fileName);
+            openSuccess = 0;
+        }
+
+        printf("[Client %d] Sending confirmation regarding the file opening\n", client_id);
+        write(client_fd, &openSuccess, sizeof(int));
+
+        if (openSuccess == 0) {
+            continue;
+        }
+
+        long int fileSize = Util::getFileSize(filePath);
+        int chunks = (fileSize / BYTES) + (fileSize % BYTES != 0);
+
+        printf("[Client %d] File size %ld. Sending the number of chunks: %d\n", client_id, fileSize, chunks);
+        write(client_fd, &chunks, sizeof(int));
+
+        /* Sending the file */
+        int packageCountConfirm;
+        for (int i = 1; i <= chunks; i++) {
+            int bytesRead = read(fd, buffer, BYTES);
+            write(client_fd, &bytesRead, sizeof(bytesRead));
+
+            /* Read the confirmation of receiving the package */
+            read(client_fd, &packageCountConfirm, sizeof(int));
+
+            printf("[Client %d][%s][%.2f%%] Sending package %d of %dB with confirmation: %s\n", client_id,
+                   fileName, 1.0f * i / chunks * 100, i, BYTES, packageCountConfirm == i ? okMessage : failMessage);
+            write(client_fd, buffer, bytesRead);
+        }
+
+        close(fd);
     }
 
-    openSuccess = 1;
-
-    printf("[Client %d] Sending confirmation regarding the file opening\n", client_id);
-    write(client_fd, &openSuccess, sizeof(int));
-
-    long int fileSize = Util::getFileSize(fileName);
-    int chunks = (fileSize / BYTES) + (fileSize % BYTES != 0);
-
-    printf("[Client %d] File size %ld. Sending the number of chunks: %d\n", client_id, fileSize, chunks);
-    write(client_fd, &chunks, sizeof(int));
-
-    /* Sending the file */
-    for (int i = 0; i < chunks; i++) {
-        int bytesRead = read(fd, buffer, BYTES);
-        write(client_fd, &bytesRead, sizeof(bytesRead));
-
-        write(client_fd, buffer, bytesRead);
-    }
-
-    close(fd);
-
-    printf("Done\n");
-
-//    printf("Readdmi\n");
-//    read(client_fd, buffer, BYTES);
-//    printf("%s\n", buffer);
-//
-//    printf("Sending\n");
-//    send(client_fd, message, BYTES, 0);
-//    printf("Hello message sent\n");
-
+//    free(files);
+    printf("Done. Closing connection with client %d...\n", client_id);
     close(client_fd);
 }
 

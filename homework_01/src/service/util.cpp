@@ -2,6 +2,7 @@
 #include <cstring>
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 
 char* Util::getIp() {
     char cmd[100];
@@ -38,4 +39,65 @@ long int Util::getFileSize(char *fileName) {
     // release the resources when not required
     fclose(fp);
     return size;
+}
+
+char** Util::getFilesFromDirectory(char *path) {
+    char command[1024];
+    int fileCount = Util::getFileCount(path);
+
+    sprintf(command, "find %s -type f", path);
+
+    FILE *fp;
+
+    fp = popen(command, "r");
+    if (fp == NULL) {
+        printf("Failed to run command\n" );
+        return NULL;
+    }
+
+    char** fileList = (char**) malloc(fileCount * sizeof (char*));
+
+    for (int i = 0; i < fileCount; i++) {
+        fileList[i] = (char*) malloc(1024);
+        fgets(fileList[i], 1024, fp);
+        fileList[i][strlen(fileList[i]) - 1] = '\0';
+    }
+
+    pclose(fp);
+
+    return fileList;
+}
+
+int Util::getFileCount(char *path) {
+    char command[1024];
+
+    sprintf(command, "find %s -type f | wc -l", path);
+
+    FILE *fp;
+    char buffer[1024];
+
+    /* Open the command for reading. */
+    fp = popen(command, "r");
+    if (fp == NULL) {
+        printf("Failed to run command\n" );
+        exit(1);
+    }
+
+    fgets(buffer, sizeof(buffer), fp);
+    pclose(fp);
+
+    return atoi(buffer);
+}
+
+char* Util::getFileNameFromPath(char *path) {
+    char* copy = strdup(path);
+    char* token = strtok(copy, "/");
+    char* lastPath;
+
+    while (token != NULL) {
+        lastPath = token;
+        token = strtok(NULL, "/");
+    }
+
+    return lastPath;
 }
