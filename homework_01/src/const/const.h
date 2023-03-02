@@ -3,6 +3,6 @@
 
 const char LOCAL_IP[] = "127.0.0.1";
 
-const int BYTES = 16384;
+const int BYTES = 4096;
 
 #endif //HOMEWORK_01_CONST_H

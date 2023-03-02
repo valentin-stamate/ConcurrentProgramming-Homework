@@ -5,6 +5,10 @@ Build all the sources using:```cmake . && make```
 
 Now you can execute the client and the serve: ```./server```, ```./client```.
 
+## Docker
+* ```docker build -t homework_01 .```
+* ```docker run --name homework_01 -p 8080:8080 -d homework_01```
+
 ## Resources
 * https://www.geeksforgeeks.org/socket-programming-cc/
 * https://www.geeksforgeeks.org/udp-server-client-implementation-c/
