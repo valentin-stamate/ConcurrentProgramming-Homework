@@ -106,5 +106,7 @@ char* Util::getFileNameFromPath(char *path) {
 void Util::removeFiles(char *path) {
     char command[512];
     sprintf(command, "rm -rf %s/*", path);
-    execl(command, NULL);
+
+    FILE* file = popen(command, "r");
+    fclose(file);
 }

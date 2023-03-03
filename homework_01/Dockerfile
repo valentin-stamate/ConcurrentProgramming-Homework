@@ -2,8 +2,16 @@ FROM ubuntu:latest
 
 WORKDIR /home/app
 
-COPY server .
-COPY server_files ./server_files
+RUN apt-get update \
+    && apt-get -y install build-essential \
+    && apt-get install -y wget \
+    && apt install -y g++ \
+    && apt install -y cmake
+
+COPY . .
+
+RUN cmake . && make
+
 EXPOSE 8080
 
 CMD ["./server"]

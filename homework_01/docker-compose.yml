@@ -5,12 +5,12 @@ services:
     build: .
     image: "homework_01"
     ports:
-      - "9090:9090"
+      - "10000:10000"
     environment:
-      PORT: 9090
+      PORT: 10000
     networks:
       - cloud_network
 
 networks:
   cloud_network:
-    external: true
+    external: false
