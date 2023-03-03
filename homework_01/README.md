@@ -7,7 +7,10 @@ Now you can execute the client and the serve: ```./server```, ```./client```.
 
 ## Docker
 * ```docker build -t homework_01 .```
-* ```docker run --name homework_01 -p 8080:8080 -d homework_01```
+* ```docker run --name homework_01 -p 10000:10000 -d homework_01```
+
+## Docker compose
+* ```docker compose up --build```
 
 ## Resources
 * https://www.geeksforgeeks.org/socket-programming-cc/

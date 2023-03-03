@@ -68,11 +68,11 @@ void Client::startTCP() {
         int fileSize;
         read(server_fd, &fileSize, sizeof(int));
 
-        printf("File %s opened successfully\n", fileName);
+//        printf("File %s opened successfully\n", fileName);
 
         int chunks;
         read(server_fd, &chunks, sizeof(int));
-        printf("\nReceiving %s of %d. %d packages of %d to be received....\n", fileName, fileSize, chunks, PACKAGE_SIZE);
+        printf("Receiving %s of %d. %d packages of %dB to be received....\n", fileName, fileSize, chunks, PACKAGE_SIZE);
 
         /* Creating the file */
         char filePath[1024];
@@ -86,7 +86,7 @@ void Client::startTCP() {
             /* Sending the confirmation of receiving the package */
             write(server_fd, &j, sizeof(int));
 
-            printf("[%s][%.2f%%] Read package %d of %dB\n", fileName, 1.0f * j / chunks * 100, j, bytesRead);
+//            printf("[%s][%.2f%%] Read package %d of %dB\n", fileName, 1.0f * j / chunks * 100, j, bytesRead);
 
             read(server_fd, buffer, bytesRead);
             write(fd, buffer, bytesRead);
@@ -95,7 +95,7 @@ void Client::startTCP() {
         close(fd);
     }
 
-    free(buffer);
+//    free(buffer);
     printf("Done. Closing connection...\n");
     close(server_fd);
 }

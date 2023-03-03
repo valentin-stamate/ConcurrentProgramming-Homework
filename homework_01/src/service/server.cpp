@@ -143,8 +143,8 @@ void Server::serverJob(int client_fd, int client_id) {
             /* Read the confirmation of receiving the package */
             read(client_fd, &packageCountConfirm, sizeof(int));
 
-            printf("[Client %d][%s][%.2f%%] Sending package %d of %dB with confirmation: %s\n", client_id,
-                   fileName, 1.0f * j / chunks * 100, j, PACKAGE_SIZE, packageCountConfirm == j ? okMessage : failMessage);
+//            printf("[Client %d][%s][%.2f%%] Sending package %d of %dB with confirmation: %s\n", client_id,
+//                   fileName, 1.0f * j / chunks * 100, j, PACKAGE_SIZE, packageCountConfirm == j ? okMessage : failMessage);
             write(client_fd, buffer, bytesRead);
         }
 
@@ -152,7 +152,7 @@ void Server::serverJob(int client_fd, int client_id) {
     }
 
 //    free(files);
-    free(buffer);
+//    free(buffer);
     printf("Done. Closing connection with client %d...\n", client_id);
     close(client_fd);
 }
