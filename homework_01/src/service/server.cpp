@@ -1,8 +1,8 @@
 #include "server.h"
 
 #include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <thread>
@@ -12,7 +12,11 @@
 
 using namespace std;
 
-void Server::startTCP(int port) {
+Server::Server(int port) {
+    this->port = port;
+}
+
+void Server::startTCP() {
     int server_fd;
 
     struct sockaddr_in address;
@@ -72,21 +76,35 @@ void Server::startTCP(int port) {
 }
 
 void Server::serverJob(int client_fd, int client_id) {
+    char filesPath[64] = "server_files";
+    char dataset_01[64] = "dataset_01";
+    char dataset_02[64] = "dataset_02";
+
     printf("[Client %d] Running job for client\n", client_id);
 
-    char folderPath[1024] = "server_files";
+    int PACKAGE_SIZE;
+    read(client_fd, &PACKAGE_SIZE, sizeof(int));
+    printf("[Client %d] Client requests packages of %dB\n", client_id, PACKAGE_SIZE);
+
+    int DATASET_TYPE;
+    read(client_fd, &DATASET_TYPE, sizeof(int));
+    printf("[Client %d] Requested dataset: %d\n", client_id, DATASET_TYPE);
+
+    char folderPath[1024];
+    sprintf(folderPath, "%s/%s", filesPath, DATASET_TYPE == 1 ? dataset_01 : dataset_02);
 
     int fileCount = Util::getFileCount(folderPath);
 
     printf("[Client %d] Files to be sent %d\n", client_fd, fileCount);
     write(client_fd, &fileCount, sizeof(int));
 
-    char buffer[BYTES];
-
     char okMessage[8] = "OK";
     char failMessage[8] = "FAIL";
 
+    char* buffer = (char*) malloc(PACKAGE_SIZE * sizeof(char));
+
     char** files = Util::getFilesFromDirectory(folderPath);
+
     for (int i = 0; i < fileCount; i++) {
         char* filePath = files[i];
         char* fileName = Util::getFileNameFromPath(filePath);
@@ -108,23 +126,25 @@ void Server::serverJob(int client_fd, int client_id) {
             continue;
         }
 
-        long int fileSize = Util::getFileSize(filePath);
-        int chunks = (fileSize / BYTES) + (fileSize % BYTES != 0);
+        long int fileSize = (int) Util::getFileSize(filePath);
+        int chunks = (int) (fileSize / PACKAGE_SIZE) + (fileSize % PACKAGE_SIZE != 0);
+
+        write(client_fd, &fileSize, sizeof(int));
 
         printf("[Client %d] File size %ld. Sending the number of chunks: %d\n", client_id, fileSize, chunks);
         write(client_fd, &chunks, sizeof(int));
 
         /* Sending the file */
         int packageCountConfirm;
-        for (int i = 1; i <= chunks; i++) {
-            int bytesRead = read(fd, buffer, BYTES);
+        for (int j = 1; j <= chunks; j++) {
+            int bytesRead = read(fd, buffer, PACKAGE_SIZE);
             write(client_fd, &bytesRead, sizeof(bytesRead));
 
             /* Read the confirmation of receiving the package */
             read(client_fd, &packageCountConfirm, sizeof(int));
 
             printf("[Client %d][%s][%.2f%%] Sending package %d of %dB with confirmation: %s\n", client_id,
-                   fileName, 1.0f * i / chunks * 100, i, BYTES, packageCountConfirm == i ? okMessage : failMessage);
+                   fileName, 1.0f * j / chunks * 100, j, PACKAGE_SIZE, packageCountConfirm == j ? okMessage : failMessage);
             write(client_fd, buffer, bytesRead);
         }
 
@@ -132,10 +152,7 @@ void Server::serverJob(int client_fd, int client_id) {
     }
 
 //    free(files);
+    free(buffer);
     printf("Done. Closing connection with client %d...\n", client_id);
     close(client_fd);
-}
-
-void Server::startUDP(int port) {
-
 }

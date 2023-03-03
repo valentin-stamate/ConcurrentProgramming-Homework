@@ -3,6 +3,8 @@
 
 const char LOCAL_IP[] = "127.0.0.1";
 
-const int BYTES = 4096;
+const int BUFFER_SIZE = 4096;
+const int DATASET_01 = 1;
+const int DATASET_02 = 2;
 
 #endif //HOMEWORK_01_CONST_H

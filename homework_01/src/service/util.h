@@ -9,6 +9,7 @@ public:
     static char** getFilesFromDirectory(char* path);
     static int getFileCount(char* path);
     static char* getFileNameFromPath(char* path);
+    static void removeFiles(char* path);
 };
 
 

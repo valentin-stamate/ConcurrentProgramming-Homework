@@ -4,9 +4,12 @@
 
 class Server {
 private:
+    int port;
 public:
-    void startTCP(int port);
-    void startUDP(int port);
+    Server(int port);
+
+    void startTCP();
+    void startUDP();
 
     static void serverJob(int client_fd, int client_id);
 };

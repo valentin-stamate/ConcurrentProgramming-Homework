@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+  server:
+    build: .
+    image: "homework_01"
+    ports:
+      - "9090:9090"
+    environment:
+      PORT: 9090
+    networks:
+      - cloud_network
+
+networks:
+  cloud_network:
+    external: true

@@ -1,20 +1,24 @@
 #include "client.h"
 
 #include <netinet/in.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include "../const/const.h"
+#include "util.h"
 
-void Client::startTCP(char* ip, int port) {
+Client::Client(const char *ip, int port, int packageSize, int datasetType):
+        ip(ip), port(port), PACKAGE_SIZE(packageSize), DATASET_TYPE(datasetType) { }
+
+void Client::startTCP() {
+    Util::removeFiles(filesPath);
+
     int server_fd;
 
     struct sockaddr_in serv_addr;
-
-    char buffer[BYTES] = {0};
 
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
@@ -22,7 +26,7 @@ void Client::startTCP(char* ip, int port) {
     }
 
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(port);
+    serv_addr.sin_port = htons(this->port);
 
     // Convert IPv4 and IPv6 addresses from text to binary form
     if (inet_pton(AF_INET, strdup(ip), &serv_addr.sin_addr) <= 0) {
@@ -36,6 +40,14 @@ void Client::startTCP(char* ip, int port) {
     }
 
     printf("Successfully connected with the server\n\n");
+
+    char *buffer = (char*) malloc(this->PACKAGE_SIZE * sizeof(char));
+
+    write(server_fd, &this->PACKAGE_SIZE, sizeof(int));
+    printf("The desired size of future packages was send %dB\n", PACKAGE_SIZE);
+
+    write(server_fd, &this->DATASET_TYPE, sizeof(int));
+    printf("Sending the requested dataset: %d\n", this->DATASET_TYPE);
 
     int filesCount;
     read(server_fd, &filesCount, sizeof(int));
@@ -53,11 +65,14 @@ void Client::startTCP(char* ip, int port) {
             continue;
         }
 
+        int fileSize;
+        read(server_fd, &fileSize, sizeof(int));
+
         printf("File %s opened successfully\n", fileName);
 
         int chunks;
         read(server_fd, &chunks, sizeof(int));
-        printf("The server will send %d chunks of %db\n", chunks, BYTES);
+        printf("\nReceiving %s of %d. %d packages of %d to be received....\n", fileName, fileSize, chunks, PACKAGE_SIZE);
 
         /* Creating the file */
         char filePath[1024];
@@ -71,19 +86,20 @@ void Client::startTCP(char* ip, int port) {
             /* Sending the confirmation of receiving the package */
             write(server_fd, &j, sizeof(int));
 
-            printf("[%s][%.2f%%] Read package %d of %dB\n", fileName, 1.0f * j / chunks * 100, j, BYTES);
+            printf("[%s][%.2f%%] Read package %d of %dB\n", fileName, 1.0f * j / chunks * 100, j, bytesRead);
+
             read(server_fd, buffer, bytesRead);
-//            printf("Write to local package %d to file %s\n", j, fileName);
             write(fd, buffer, bytesRead);
         }
 
         close(fd);
     }
 
+    free(buffer);
     printf("Done. Closing connection...\n");
     close(server_fd);
 }
 
-void Client::startUDP(char *ip, int port) {
+void Client::startUDP() {
 
 }

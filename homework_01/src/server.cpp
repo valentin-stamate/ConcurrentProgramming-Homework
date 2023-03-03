@@ -1,10 +1,10 @@
 #include "service/server.h"
 
 int main() {
-    int port = 8080;
+    int port = 10000;
 
-    Server server;
-    server.startTCP(port);
+    Server server(port);
+    server.startTCP();
 
     return 0;
 }

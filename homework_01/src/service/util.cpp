@@ -1,8 +1,9 @@
 #include "util.h"
 #include <cstring>
-#include <stdio.h>
-#include <stdlib.h>
-#include <vector>
+#include <cstdio>
+#include <cstdlib>
+#include <a.out.h>
+#include <csignal>
 
 char* Util::getIp() {
     char cmd[100];
@@ -100,4 +101,10 @@ char* Util::getFileNameFromPath(char *path) {
     }
 
     return lastPath;
+}
+
+void Util::removeFiles(char *path) {
+    char command[512];
+    sprintf(command, "rm -rf %s/*", path);
+    execl(command, NULL);
 }

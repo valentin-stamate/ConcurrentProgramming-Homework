@@ -7,9 +7,15 @@ using namespace std;
 class Client {
 private:
     char filesPath[64] = "client_files";
+    const int port;
+    const char *ip;
+    const int PACKAGE_SIZE = 1024;
+    const int DATASET_TYPE;
 public:
-    void startTCP(char* ip, int port);
-    void startUDP(char* ip, int port);
+    Client(const char *ip, int port, int packageSize, int datasetType);
+
+    void startTCP();
+    void startUDP();
 };
 
 #endif //HOMEWORK_01_CLIENT_H
