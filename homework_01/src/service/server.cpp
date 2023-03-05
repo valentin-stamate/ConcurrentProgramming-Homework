@@ -125,7 +125,6 @@ void Server::startJob(int protocol, int client_id, int client_fd, sockaddr_in cl
     int DATASET_TYPE;
     /* IDK why it's not working only with the util function */
     Util::readFrom(protocol, client_fd, &DATASET_TYPE, sizeof(int), client_addr);
-
     printf("[Client %d] Requested dataset: %d\n", client_id, DATASET_TYPE);
 
     char folderPath[1024];
@@ -134,8 +133,7 @@ void Server::startJob(int protocol, int client_id, int client_fd, sockaddr_in cl
     int fileCount = Util::getFileCount(folderPath);
 
     printf("[Client %d] Files to be sent %d\n", client_fd, fileCount);
-//    Util::writeTo(protocol, client_fd, &fileCount, sizeof(int), client_addr);
-    sendto(client_fd, &fileCount, sizeof(int), MSG_CONFIRM, (const struct sockaddr *) &client_addr, len);
+    Util::writeTo(protocol, client_fd, &fileCount, sizeof(int), client_addr);
 
     char okMessage[8] = "OK";
     char failMessage[8] = "FAIL";

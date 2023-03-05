@@ -73,16 +73,15 @@ void Client::startJob(int protocol, int server_fd, sockaddr_in server_addr) {
     Util::removeFiles(filesPath);
 
     char buffer[PACKAGE_SIZE];
-    socklen_t len = sizeof(server_addr);
 
-    sendto(server_fd, &this->PACKAGE_SIZE, sizeof(int), MSG_CONFIRM, (const struct sockaddr *) &server_addr, len);
+    Util::writeTo(protocol, server_fd, &this->PACKAGE_SIZE, sizeof(int), server_addr);
     printf("The desired size of future packages was send %dB\n", PACKAGE_SIZE);
 
-    sendto(server_fd, &this->DATASET_TYPE, sizeof(int), MSG_CONFIRM, (const struct sockaddr *) &server_addr, len);
+    Util::writeTo(protocol, server_fd, &this->DATASET_TYPE, sizeof(int), server_addr);
     printf("Sending the requested dataset: %d\n", this->DATASET_TYPE);
 
     int filesCount;
-    recvfrom(server_fd, &filesCount, sizeof(int), MSG_WAITALL, (struct sockaddr *) &server_addr,&len);
+    Util::readFrom(protocol, server_fd, &filesCount, sizeof(int), server_addr);
     printf("Server files to be received %d\n", filesCount);
 
     for (int i = 0; i < filesCount; i++) {
