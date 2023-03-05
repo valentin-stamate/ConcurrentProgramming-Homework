@@ -113,26 +113,26 @@ void Util::removeFiles(char *path) {
     fclose(file);
 }
 
-void Util::writeTo(int protocol, int fd, void* buffer, int bufferSize, sockaddr_in client_addr) {
+void Util::writeTo(int protocol, int fd, void* buffer, int bufferSize, sockaddr_in &addr) {
     if (protocol == TCP) {
         write(fd, buffer, bufferSize);
         return;
     } else if (protocol == UDP) {
-        socklen_t len = sizeof(client_addr);
-        sendto(fd, buffer, bufferSize, MSG_CONFIRM, (const struct sockaddr *) &client_addr, len);
+        socklen_t len = sizeof(addr);
+        sendto(fd, buffer, bufferSize, MSG_CONFIRM, (const struct sockaddr *) &addr, len);
         return;
     }
 
     printf("Something went wrong with the protocol\n");
 }
 
-void Util::readFrom(int protocol, int fd, void* buffer, int bufferSize, sockaddr_in client_addr) {
+void Util::readFrom(int protocol, int fd, void* buffer, int bufferSize, sockaddr_in &addr) {
     if (protocol == TCP) {
         read(fd, buffer, bufferSize);
         return;
     } else if (protocol == UDP) {
-        socklen_t len = sizeof(client_addr);
-        recvfrom(fd, buffer, bufferSize, MSG_WAITALL, (struct sockaddr *) &client_addr, &len);
+        socklen_t len = sizeof(addr);
+        recvfrom(fd, buffer, bufferSize, MSG_WAITALL, (struct sockaddr *) &addr, &len);
         return;
     }
 

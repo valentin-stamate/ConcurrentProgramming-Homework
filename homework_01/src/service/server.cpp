@@ -106,7 +106,7 @@ void Server::startUDP() {
     }
 
     while (true) {
-        startJob(protocol, client_fd, NULL, client_addr);
+        Server::startJob(protocol, 1, client_fd, client_addr);
     }
 
     close(client_fd);
@@ -115,13 +115,17 @@ void Server::startUDP() {
 void Server::startJob(int protocol, int client_id, int client_fd, sockaddr_in client_addr) {
     printf("[Client %d] Running job for client\n", client_id);
 
+    socklen_t len = sizeof(client_addr);
+
     int PACKAGE_SIZE;
-    Util::readFrom(protocol, client_fd, &PACKAGE_SIZE, sizeof(int), {});
+    Util::readFrom(protocol, client_fd, &PACKAGE_SIZE, sizeof(int), client_addr);
     char buffer[PACKAGE_SIZE];
     printf("[Client %d] Client requests packages of %dB\n", client_id, PACKAGE_SIZE);
 
     int DATASET_TYPE;
-    Util::readFrom(protocol, client_fd, &DATASET_TYPE, sizeof(int), {});
+    /* IDK why it's not working only with the util function */
+    Util::readFrom(protocol, client_fd, &DATASET_TYPE, sizeof(int), client_addr);
+
     printf("[Client %d] Requested dataset: %d\n", client_id, DATASET_TYPE);
 
     char folderPath[1024];
@@ -130,7 +134,8 @@ void Server::startJob(int protocol, int client_id, int client_fd, sockaddr_in cl
     int fileCount = Util::getFileCount(folderPath);
 
     printf("[Client %d] Files to be sent %d\n", client_fd, fileCount);
-    Util::writeTo(protocol, client_fd, &fileCount, sizeof(int), {});
+//    Util::writeTo(protocol, client_fd, &fileCount, sizeof(int), client_addr);
+    sendto(client_fd, &fileCount, sizeof(int), MSG_CONFIRM, (const struct sockaddr *) &client_addr, len);
 
     char okMessage[8] = "OK";
     char failMessage[8] = "FAIL";
@@ -141,7 +146,7 @@ void Server::startJob(int protocol, int client_id, int client_fd, sockaddr_in cl
         char* filePath = files[i];
         char* fileName = Util::getFileNameFromPath(filePath);
 
-        Util::writeTo(protocol, client_fd, fileName, 512, {});
+        Util::writeTo(protocol, client_fd, fileName, 512, client_addr);
 
         int fd = open(filePath, O_RDONLY);
 
@@ -152,7 +157,7 @@ void Server::startJob(int protocol, int client_id, int client_fd, sockaddr_in cl
         }
 
         printf("[Client %d] Sending confirmation regarding the file opening\n", client_id);
-        Util::writeTo(protocol, client_fd, &openSuccess, sizeof(int), {});
+        Util::writeTo(protocol, client_fd, &openSuccess, sizeof(int), client_addr);
 
         if (openSuccess == 0) {
             continue;
@@ -161,23 +166,23 @@ void Server::startJob(int protocol, int client_id, int client_fd, sockaddr_in cl
         long int fileSize = (int) Util::getFileSize(filePath);
         int chunks = (int) (fileSize / PACKAGE_SIZE) + (fileSize % PACKAGE_SIZE != 0);
 
-        Util::writeTo(protocol, client_fd, &fileSize, sizeof(int), {});
+        Util::writeTo(protocol, client_fd, &fileSize, sizeof(int), client_addr);
 
         printf("[Client %d] File size %ld. Sending the number of chunks: %d\n", client_id, fileSize, chunks);
-        Util::writeTo(protocol, client_fd, &chunks, sizeof(int), {});
+        Util::writeTo(protocol, client_fd, &chunks, sizeof(int), client_addr);
 
         /* Sending the file */
         int packageCountConfirm;
         for (int j = 1; j <= chunks; j++) {
             int bytesRead = read(fd, buffer, PACKAGE_SIZE);
-            Util::writeTo(protocol, client_fd, &bytesRead, sizeof(bytesRead), {});
+            Util::writeTo(protocol, client_fd, &bytesRead, sizeof(bytesRead), client_addr);
 
             /* Read the confirmation of receiving the package */
-            Util::readFrom(protocol, client_fd, &packageCountConfirm, sizeof(int), {});
+            Util::readFrom(protocol, client_fd, &packageCountConfirm, sizeof(int), client_addr);
 
 //            printf("[Client %d][%s][%.2f%%] Sending package %d of %dB with confirmation: %s\n", client_id,
 //                   fileName, 1.0f * j / chunks * 100, j, PACKAGE_SIZE, packageCountConfirm == j ? okMessage : failMessage);
-            Util::writeTo(protocol, client_fd, buffer, bytesRead, {});
+            Util::writeTo(protocol, client_fd, buffer, bytesRead, client_addr);
         }
 
         close(fd);

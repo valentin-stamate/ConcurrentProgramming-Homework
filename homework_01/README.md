@@ -15,9 +15,9 @@ Now you can execute the client and the serve: ```./server```, ```./client```.
 ## Run
 * Server TCP: ```./server 1```
 * Server UDP: ```./server 2```
-* Client TCP: ```./client 1 127.0.0.1 10000 4096 2```
-* Client UDP: ```./client 2 127.0.0.1 10001 4096 2```
-* Client General: ```./client protocol ip port package_size dataset_type``` `dataset_type` is 1 or 2 and  ```protocol``` is 1(TCP) or 2(UDP)
+* Client TCP: ```./client 1 127.0.0.1 10000 4096 2 1```
+* Client UDP: ```./client 2 127.0.0.1 10001 4096 2 1```
+* Client General: ```./client protocol ip port package_size dataset_type acknowledge``` `dataset_type` is 1 or 2 and  ```protocol``` is 1(TCP) or 2(UDP)
 
 The TCP server is opened at port 10000 and UDP at 10001
 

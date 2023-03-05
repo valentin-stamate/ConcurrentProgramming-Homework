@@ -48,7 +48,7 @@ void Client::startTCP() {
 void Client::startUDP() {
     int server_fd;
 
-    struct sockaddr_in     server_addr;
+    struct sockaddr_in server_addr;
 
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -63,7 +63,7 @@ void Client::startUDP() {
     server_addr.sin_port = htons(this->port);
     server_addr.sin_addr.s_addr = INADDR_ANY;
 
-    startJob(UDP, 0, server_addr);
+    startJob(UDP, server_fd, server_addr);
 
     printf("Done\n");
     close(server_fd);
@@ -73,23 +73,24 @@ void Client::startJob(int protocol, int server_fd, sockaddr_in server_addr) {
     Util::removeFiles(filesPath);
 
     char buffer[PACKAGE_SIZE];
+    socklen_t len = sizeof(server_addr);
 
-    Util::writeTo(protocol, server_fd, &this->PACKAGE_SIZE, sizeof(int), {});
+    sendto(server_fd, &this->PACKAGE_SIZE, sizeof(int), MSG_CONFIRM, (const struct sockaddr *) &server_addr, len);
     printf("The desired size of future packages was send %dB\n", PACKAGE_SIZE);
 
-    Util::writeTo(protocol, server_fd, &this->DATASET_TYPE, sizeof(int), {});
+    sendto(server_fd, &this->DATASET_TYPE, sizeof(int), MSG_CONFIRM, (const struct sockaddr *) &server_addr, len);
     printf("Sending the requested dataset: %d\n", this->DATASET_TYPE);
 
     int filesCount;
-    Util::readFrom(protocol, server_fd, &filesCount, sizeof(int), {});
+    recvfrom(server_fd, &filesCount, sizeof(int), MSG_WAITALL, (struct sockaddr *) &server_addr,&len);
     printf("Server files to be received %d\n", filesCount);
 
     for (int i = 0; i < filesCount; i++) {
         char fileName[512];
-        Util::readFrom(protocol, server_fd, &fileName, 512, {});
+        Util::readFrom(protocol, server_fd, &fileName, 512, server_addr);
 
         int openSuccess;
-        Util::readFrom(protocol, server_fd, &openSuccess, sizeof(int), {});
+        Util::readFrom(protocol, server_fd, &openSuccess, sizeof(int), server_addr);
 
         if (openSuccess == 0) {
             printf("Error opening %s\n", fileName);
@@ -97,12 +98,12 @@ void Client::startJob(int protocol, int server_fd, sockaddr_in server_addr) {
         }
 
         int fileSize;
-        Util::readFrom(protocol, server_fd, &fileSize, sizeof(int), {});
+        Util::readFrom(protocol, server_fd, &fileSize, sizeof(int), server_addr);
 
 //        printf("File %s opened successfully\n", fileName);
 
         int chunks;
-        Util::readFrom(protocol, server_fd, &chunks, sizeof(int), {});
+        Util::readFrom(protocol, server_fd, &chunks, sizeof(int), server_addr);
         printf("Receiving %s of %d. %d packages of %dB to be received....\n", fileName, fileSize, chunks, PACKAGE_SIZE);
 
         /* Creating the file */
@@ -112,14 +113,14 @@ void Client::startJob(int protocol, int server_fd, sockaddr_in server_addr) {
 
         for (int j = 1; j <= chunks; j++) {
             int bytesRead;
-            Util::readFrom(protocol, server_fd, &bytesRead, sizeof(int), {});
+            Util::readFrom(protocol, server_fd, &bytesRead, sizeof(int), server_addr);
 
             /* Sending the confirmation of receiving the package */
-            Util::writeTo(protocol, server_fd, &j, sizeof(int), {});
+            Util::writeTo(protocol, server_fd, &j, sizeof(int), server_addr);
 
 //            printf("[%s][%.2f%%] Read package %d of %dB\n", fileName, 1.0f * j / chunks * 100, j, bytesRead);
 
-            Util::readFrom(protocol, server_fd, buffer, bytesRead, {});
+            Util::readFrom(protocol, server_fd, buffer, bytesRead, server_addr);
             write(fd, buffer, bytesRead);
         }
 
