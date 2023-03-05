@@ -1,16 +1,26 @@
 version: '3.9'
 
 services:
-  server:
-    build: .
+  server_tcp:
+    build:
+      context: .
+      dockerfile: config_tcp/Dockerfile
     image: "homework_01"
     ports:
       - "10000:10000"
-    environment:
-      PORT: 10000
+    volumes:
+      - shared_storage:~/server_files
     networks:
       - cloud_network
 
 networks:
   cloud_network:
     external: false
+
+volumes:
+  shared_storage:
+    driver: local
+    driver_opts:
+      type: "none"
+      o: "bind"
+      device: "./server_files"

@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <thread>
 #include <fcntl.h>
-#include "../const/const.h"
+#include <cstring>
 #include "util.h"
 
 using namespace std;
@@ -30,7 +30,7 @@ void Server::startTCP() {
         exit(EXIT_FAILURE);
     }
 
-    // Forcefully attaching socket to the port 8080
+    // Forcefully attaching socket to the port
     if (setsockopt(server_fd, SOL_SOCKET,SO_REUSEADDR | SO_REUSEPORT, &opt,sizeof(opt))) {
         perror("setsockopt");
         exit(EXIT_FAILURE);
@@ -40,7 +40,7 @@ void Server::startTCP() {
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(port);
 
-    // Forcefully attaching socket to the port 8080
+    // Forcefully attaching socket to the port
     if (bind(server_fd, (struct sockaddr*)&address,sizeof(address)) < 0) {
         perror("bind failed");
         exit(EXIT_FAILURE);
@@ -53,7 +53,7 @@ void Server::startTCP() {
 
     int clientId = 1;
 
-    printf("The server is running at 127.0.0.1:%d\n\n", port);
+    printf("TCP server is running at 127.0.0.1:%d\n\n", port);
 
     while (true) {
         int client_fd;
@@ -66,7 +66,7 @@ void Server::startTCP() {
         printf("Starting thread\n");
 
         /* Start a new thread handling the client */
-        new thread(serverJob, client_fd, clientId);
+        new thread(jobTCP, client_fd, clientId);
 
         clientId++;
     }
@@ -75,8 +75,8 @@ void Server::startTCP() {
     shutdown(server_fd, SHUT_RDWR);
 }
 
-void Server::serverJob(int client_fd, int client_id) {
-    char filesPath[64] = "server_files";
+void Server::jobTCP(int client_fd, int client_id) {
+    char filesPath[64] = "~/server_files";
     char dataset_01[64] = "dataset_01";
     char dataset_02[64] = "dataset_02";
 
@@ -84,6 +84,7 @@ void Server::serverJob(int client_fd, int client_id) {
 
     int PACKAGE_SIZE;
     read(client_fd, &PACKAGE_SIZE, sizeof(int));
+    char buffer[PACKAGE_SIZE];
     printf("[Client %d] Client requests packages of %dB\n", client_id, PACKAGE_SIZE);
 
     int DATASET_TYPE;
@@ -100,8 +101,6 @@ void Server::serverJob(int client_fd, int client_id) {
 
     char okMessage[8] = "OK";
     char failMessage[8] = "FAIL";
-
-    char* buffer = (char*) malloc(PACKAGE_SIZE * sizeof(char));
 
     char** files = Util::getFilesFromDirectory(folderPath);
 
@@ -156,3 +155,121 @@ void Server::serverJob(int client_fd, int client_id) {
     printf("Done. Closing connection with client %d...\n", client_id);
     close(client_fd);
 }
+
+void Server::startUDP() {
+    printf("UDP server is running at 127.0.0.1:%d\n\n", port);
+
+    int client_fd;
+    struct sockaddr_in server_addr;
+    struct sockaddr_in client_addr;
+
+    // Creating socket file descriptor
+    if ((client_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(&server_addr, 0, sizeof(server_addr));
+    memset(&client_addr, 0, sizeof(client_addr));
+
+    // Filling server information
+    server_addr.sin_family = AF_INET; // IPv4
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(this->port);
+
+    // Bind the socket with the server address
+    if (bind(client_fd, (const struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    while (true) {
+        jobUDP(1, client_fd, client_addr);
+    }
+
+    close(client_fd);
+}
+
+void Server::jobUDP(int client_id, int client_fd, sockaddr_in client_addr) {
+    char filesPath[64] = "~/server_files";
+    char dataset_01[64] = "dataset_01";
+    char dataset_02[64] = "dataset_02";
+
+    printf("[Client %d] Running job for client\n", client_id);
+
+    socklen_t len = sizeof(client_addr);
+
+    int PACKAGE_SIZE;
+    recvfrom(client_fd, &PACKAGE_SIZE, sizeof(int), MSG_WAITALL, (struct sockaddr *) &client_addr, &len);
+    char buffer[PACKAGE_SIZE];
+    printf("[Client %d] Client requests packages of %dB\n", client_id, PACKAGE_SIZE);
+
+    int DATASET_TYPE;
+    recvfrom(client_fd, &DATASET_TYPE, sizeof(int), MSG_WAITALL, (struct sockaddr *) &client_addr, &len);
+    printf("[Client %d] Requested dataset: %d\n", client_id, DATASET_TYPE);
+
+    char folderPath[1024];
+    sprintf(folderPath, "%s/%s", filesPath, DATASET_TYPE == 1 ? dataset_01 : dataset_02);
+
+    int fileCount = Util::getFileCount(folderPath);
+
+    printf("[Client %d] Files to be sent %d\n", client_fd, fileCount);
+    sendto(client_fd, &fileCount, sizeof(int), MSG_CONFIRM, (const struct sockaddr *) &client_addr, len);
+
+    char okMessage[8] = "OK";
+    char failMessage[8] = "FAIL";
+
+    char** files = Util::getFilesFromDirectory(folderPath);
+
+    for (int i = 0; i < fileCount; i++) {
+        char* filePath = files[i];
+        char* fileName = Util::getFileNameFromPath(filePath);
+
+        sendto(client_fd, fileName, 512, MSG_CONFIRM, (const struct sockaddr *) &client_addr, len);
+
+        int fd = open(filePath, O_RDONLY);
+
+        int openSuccess = 1;
+        if (fd < 0) {
+            printf("Error opening file %s\n", fileName);
+            openSuccess = 0;
+        }
+
+        printf("[Client %d] Sending confirmation regarding the file opening\n", client_id);
+        sendto(client_fd, &openSuccess, sizeof(int), MSG_CONFIRM, (const struct sockaddr *) &client_addr, len);
+
+        if (openSuccess == 0) {
+            continue;
+        }
+
+        long int fileSize = (int) Util::getFileSize(filePath);
+        int chunks = (int) (fileSize / PACKAGE_SIZE) + (fileSize % PACKAGE_SIZE != 0);
+
+        sendto(client_fd, &fileSize, sizeof(int), MSG_CONFIRM, (const struct sockaddr *) &client_addr, len);
+
+        printf("[Client %d] File size %ld. Sending the number of chunks: %d\n", client_id, fileSize, chunks);
+        sendto(client_fd, &chunks, sizeof(int), MSG_CONFIRM, (const struct sockaddr *) &client_addr, len);
+
+        /* Sending the file */
+        int packageCountConfirm;
+        for (int j = 1; j <= chunks; j++) {
+            int bytesRead = read(fd, buffer, PACKAGE_SIZE);
+            sendto(client_fd, &bytesRead, sizeof(int), MSG_CONFIRM, (const struct sockaddr *) &client_addr, len);
+
+            /* Read the confirmation of receiving the package */
+            recvfrom(client_fd, &packageCountConfirm, sizeof(int), MSG_WAITALL, (struct sockaddr *) &client_addr, &len);
+
+//            printf("[Client %d][%s][%.2f%%] Sending package %d of %dB with confirmation: %s\n", client_id,
+//                   fileName, 1.0f * j / chunks * 100, j, PACKAGE_SIZE, packageCountConfirm == j ? okMessage : failMessage);
+            sendto(client_fd, &buffer, bytesRead, MSG_CONFIRM, (const struct sockaddr *) &client_addr, len);
+        }
+
+        close(fd);
+    }
+
+//    free(files);
+//    free(buffer);
+    printf("Done. Closing connection with client %d...\n", client_id);
+    close(client_fd);
+}
+

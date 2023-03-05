@@ -1,14 +1,21 @@
 #include "service/client.h"
 #include "const/const.h"
 
-int main() {
-    const char ip[64] = "127.0.0.1";
-    int port = 10000;
-    int packageSize = 4096 * 4;
-    int datasetType = DATASET_02;
+int main(int argc, char** argv) {
+    int protocol = atoi(argv[1]);
+    const char* ip = argv[2];
+    printf("%s\n", ip);
+    int port = atoi(argv[3]);
+    int packageSize = atoi(argv[4]);
+    int datasetType = atoi(argv[5]);
 
     Client client(ip, port, packageSize, datasetType);
-    client.startTCP();
+
+    if (protocol == TCP) {
+        client.startTCP();
+    } else if (protocol == UDP) {
+        client.startUDP();
+    }
 
     return 0;
 }

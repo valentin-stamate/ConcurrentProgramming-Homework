@@ -8,3 +8,6 @@ server
 *.cat
 *.jpg
 *.avi
+.cmake
+*.cbp
+Testing
