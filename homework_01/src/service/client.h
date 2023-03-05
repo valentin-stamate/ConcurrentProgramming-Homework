@@ -13,7 +13,7 @@ private:
     const char *ip;
     int PACKAGE_SIZE = 1024;
     int DATASET_TYPE;
-    const int acknowledge;
+    int acknowledge;
 public:
     Client(const char *ip, int port, int packageSize, int datasetType, int acknowledge);
 

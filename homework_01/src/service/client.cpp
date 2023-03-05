@@ -80,6 +80,9 @@ void Client::startJob(int protocol, int server_fd, sockaddr_in server_addr) {
     Util::writeTo(protocol, server_fd, &this->DATASET_TYPE, sizeof(int), server_addr);
     printf("Sending the requested dataset: %d\n", this->DATASET_TYPE);
 
+    Util::writeTo(protocol, server_fd, &this->acknowledge, sizeof(int), server_addr);
+    printf("Sending the acknowledgement: %d\n", this->acknowledge);
+
     int filesCount;
     Util::readFrom(protocol, server_fd, &filesCount, sizeof(int), server_addr);
     printf("Server files to be received %d\n", filesCount);
@@ -115,7 +118,9 @@ void Client::startJob(int protocol, int server_fd, sockaddr_in server_addr) {
             Util::readFrom(protocol, server_fd, &bytesRead, sizeof(int), server_addr);
 
             /* Sending the confirmation of receiving the package */
-            Util::writeTo(protocol, server_fd, &j, sizeof(int), server_addr);
+            if (acknowledge == 1) {
+                Util::writeTo(protocol, server_fd, &j, sizeof(int), server_addr);
+            }
 
 //            printf("[%s][%.2f%%] Read package %d of %dB\n", fileName, 1.0f * j / chunks * 100, j, bytesRead);
 

@@ -123,9 +123,12 @@ void Server::startJob(int protocol, int client_id, int client_fd, sockaddr_in cl
     printf("[Client %d] Client requests packages of %dB\n", client_id, PACKAGE_SIZE);
 
     int DATASET_TYPE;
-    /* IDK why it's not working only with the util function */
     Util::readFrom(protocol, client_fd, &DATASET_TYPE, sizeof(int), client_addr);
     printf("[Client %d] Requested dataset: %d\n", client_id, DATASET_TYPE);
+
+    int acknowledge;
+    Util::readFrom(protocol, client_fd, &acknowledge, sizeof(int), client_addr);
+    printf("[Client %d] Acknowledgement: %d\n", client_id, acknowledge);
 
     char folderPath[1024];
     sprintf(folderPath, "%s", DATASET_TYPE == 1 ? dataset_01 : dataset_02);
@@ -176,7 +179,9 @@ void Server::startJob(int protocol, int client_id, int client_fd, sockaddr_in cl
             Util::writeTo(protocol, client_fd, &bytesRead, sizeof(bytesRead), client_addr);
 
             /* Read the confirmation of receiving the package */
-            Util::readFrom(protocol, client_fd, &packageCountConfirm, sizeof(int), client_addr);
+            if (acknowledge == 1) {
+                Util::readFrom(protocol, client_fd, &packageCountConfirm, sizeof(int), client_addr);
+            }
 
 //            printf("[Client %d][%s][%.2f%%] Sending package %d of %dB with confirmation: %s\n", client_id,
 //                   fileName, 1.0f * j / chunks * 100, j, PACKAGE_SIZE, packageCountConfirm == j ? okMessage : failMessage);
