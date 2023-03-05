@@ -8,10 +8,10 @@ RUN apt-get update \
     && apt install -y g++ \
     && apt install -y cmake
 
-COPY .. .
+COPY ../.. .
 
 RUN cmake . && make
 
 EXPOSE 10000
 
-CMD ["./server 10000"]
+CMD ["./server", "1"]

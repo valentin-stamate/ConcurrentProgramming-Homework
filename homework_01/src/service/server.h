@@ -7,6 +7,10 @@ class Server {
 private:
     int port;
 public:
+    static char filesPath[64];
+    static char dataset_01[64];
+    static char dataset_02[64];
+
     Server(int port);
 
     void startTCP();

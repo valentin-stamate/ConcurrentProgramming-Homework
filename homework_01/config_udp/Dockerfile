@@ -14,4 +14,4 @@ RUN cmake . && make
 
 EXPOSE 10001
 
-CMD ["./server 10001"]
+CMD ["./server", "2"]

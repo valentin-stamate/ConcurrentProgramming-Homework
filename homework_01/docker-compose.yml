@@ -5,11 +5,22 @@ services:
     build:
       context: .
       dockerfile: config_tcp/Dockerfile
-    image: "homework_01"
+    image: homework_01_tcp
     ports:
       - "10000:10000"
     volumes:
-      - shared_storage:~/server_files
+      - /home/app/server_files:/home/app/server_files
+    networks:
+      - cloud_network
+  server_udp:
+    build:
+      context: .
+      dockerfile: config_udp/Dockerfile
+    image: homework_02_udp
+    ports:
+      - "10001:10001/udp"
+    volumes:
+      - /home/app/server_files:/home/app/server_files
     networks:
       - cloud_network
 
@@ -17,10 +28,10 @@ networks:
   cloud_network:
     external: false
 
-volumes:
-  shared_storage:
-    driver: local
-    driver_opts:
-      type: "none"
-      o: "bind"
-      device: "./server_files"
+#volumes:
+#  shared_storage:
+#    driver: local
+#    driver_opts:
+#      type: "none"
+#      o: "bind"
+#      device: "/home/app/server_files"

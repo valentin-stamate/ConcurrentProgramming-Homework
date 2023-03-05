@@ -12,6 +12,10 @@
 
 using namespace std;
 
+char Server::filesPath[64] = "/home/app/server_files";
+char Server::dataset_01[64] = "/home/app/server_files/dataset_01";
+char Server::dataset_02[64] = "/home/app/server_files/dataset_02";
+
 Server::Server(int port) {
     this->port = port;
 }
@@ -76,10 +80,6 @@ void Server::startTCP() {
 }
 
 void Server::jobTCP(int client_fd, int client_id) {
-    char filesPath[64] = "~/server_files";
-    char dataset_01[64] = "dataset_01";
-    char dataset_02[64] = "dataset_02";
-
     printf("[Client %d] Running job for client\n", client_id);
 
     int PACKAGE_SIZE;
@@ -92,7 +92,7 @@ void Server::jobTCP(int client_fd, int client_id) {
     printf("[Client %d] Requested dataset: %d\n", client_id, DATASET_TYPE);
 
     char folderPath[1024];
-    sprintf(folderPath, "%s/%s", filesPath, DATASET_TYPE == 1 ? dataset_01 : dataset_02);
+    sprintf(folderPath, "%s", DATASET_TYPE == 1 ? dataset_01 : dataset_02);
 
     int fileCount = Util::getFileCount(folderPath);
 
@@ -191,10 +191,6 @@ void Server::startUDP() {
 }
 
 void Server::jobUDP(int client_id, int client_fd, sockaddr_in client_addr) {
-    char filesPath[64] = "~/server_files";
-    char dataset_01[64] = "dataset_01";
-    char dataset_02[64] = "dataset_02";
-
     printf("[Client %d] Running job for client\n", client_id);
 
     socklen_t len = sizeof(client_addr);
@@ -209,7 +205,7 @@ void Server::jobUDP(int client_id, int client_fd, sockaddr_in client_addr) {
     printf("[Client %d] Requested dataset: %d\n", client_id, DATASET_TYPE);
 
     char folderPath[1024];
-    sprintf(folderPath, "%s/%s", filesPath, DATASET_TYPE == 1 ? dataset_01 : dataset_02);
+    sprintf(folderPath, "%s", DATASET_TYPE == 1 ? dataset_01 : dataset_02);
 
     int fileCount = Util::getFileCount(folderPath);
 
