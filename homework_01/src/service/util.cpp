@@ -1,9 +1,11 @@
 #include "util.h"
+#include "../const/const.h"
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
 #include <a.out.h>
 #include <csignal>
+#include <netinet/in.h>
 
 char* Util::getIp() {
     char cmd[100];
@@ -109,4 +111,30 @@ void Util::removeFiles(char *path) {
 
     FILE* file = popen(command, "r");
     fclose(file);
+}
+
+void Util::writeTo(int protocol, int fd, void* buffer, int bufferSize, sockaddr_in client_addr) {
+    if (protocol == TCP) {
+        write(fd, buffer, bufferSize);
+        return;
+    } else if (protocol == UDP) {
+        socklen_t len = sizeof(client_addr);
+        sendto(fd, buffer, bufferSize, MSG_CONFIRM, (const struct sockaddr *) &client_addr, len);
+        return;
+    }
+
+    printf("Something went wrong with the protocol\n");
+}
+
+void Util::readFrom(int protocol, int fd, void* buffer, int bufferSize, sockaddr_in client_addr) {
+    if (protocol == TCP) {
+        read(fd, buffer, bufferSize);
+        return;
+    } else if (protocol == UDP) {
+        socklen_t len = sizeof(client_addr);
+        recvfrom(fd, buffer, bufferSize, MSG_WAITALL, (struct sockaddr *) &client_addr, &len);
+        return;
+    }
+
+    printf("Something went wrong with the protocol\n");
 }

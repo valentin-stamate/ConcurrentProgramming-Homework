@@ -8,8 +8,9 @@ int main(int argc, char** argv) {
     int port = atoi(argv[3]);
     int packageSize = atoi(argv[4]);
     int datasetType = atoi(argv[5]);
+    int acknowledge = atoi(argv[6]);
 
-    Client client(ip, port, packageSize, datasetType);
+    Client client(ip, port, packageSize, datasetType, acknowledge);
 
     if (protocol == TCP) {
         client.startTCP();

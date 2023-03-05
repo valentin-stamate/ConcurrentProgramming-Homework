@@ -5,19 +5,19 @@
 
 class Server {
 private:
-    int port;
+    const int port;
+    const int protocol;
 public:
     static char filesPath[64];
     static char dataset_01[64];
     static char dataset_02[64];
 
-    Server(int port);
+    Server(int port, int protocol);
 
     void startTCP();
     void startUDP();
 
-    static void jobTCP(int client_fd, int client_id);
-    static void jobUDP(int client_id, int client_fd, sockaddr_in client_addr);
+    static void startJob(int protocol, int client_id, int client_fd, sockaddr_in client_addr);
 };
 
 
