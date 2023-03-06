@@ -130,14 +130,15 @@ void Client::startJob(int protocol, int server_fd, sockaddr_in server_addr) {
             /* Sending the confirmation of receiving the package */
             if (acknowledge == 1) {
                 Util::writeTo(protocol, server_fd, &j, sizeof(int), server_addr, &packagesSend, &bytesSend);
+//                usleep(2000);
+            } else {
+//                usleep(250);
             }
 
 //            printf("[%s][%.2f%%] Read package %d of %dB\n", fileName, 1.0f * j / packages * 100, j, bytesRead);
 
             Util::readFrom(protocol, server_fd, buffer, bytesRead, server_addr, &packagesReceived, &bytesReceived);
             write(fd, buffer, bytesRead);
-
-//            usleep(20);
         }
 
         close(fd);

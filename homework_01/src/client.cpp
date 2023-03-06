@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
     int datasetType = atoi(argv[5]);
     int acknowledge = atoi(argv[6]);
 
-    printf("Protocol: %d. Port: %d. Package size: %d. Dataset: %d. Acknowledge: %d",
+    printf("Protocol: %d. Port: %d. Package size: %d. Dataset: %d. Acknowledge: %d\n",
            protocol, port, packageSize, datasetType, acknowledge);
 
     Client client(ip, port, packageSize, datasetType, acknowledge);
@@ -19,6 +19,8 @@ int main(int argc, char** argv) {
         client.startTCP();
     } else if (protocol == UDP) {
         client.startUDP();
+    } else {
+        printf("Something went wrong\n");
     }
 
     return 0;

@@ -184,12 +184,13 @@ void Server::startJob(int protocol, int client_id, int client_fd, sockaddr_in cl
             /* Read the confirmation of receiving the package */
             if (acknowledge == 1) {
                 Util::readFrom(protocol, client_fd, &packageCountConfirm, sizeof(int), client_addr, &packagesReceived, &bytesReceived);
+            } else {
+                usleep(2000);
             }
 
 //            printf("[Client %d][%s][%.2f%%] Sending package %d of %dB with confirmation: %s\n", client_id,
 //                   fileName, 1.0f * j / packages * 100, j, PACKAGE_SIZE, packageCountConfirm == j ? okMessage : failMessage);
             Util::writeTo(protocol, client_fd, buffer, bytesRead, client_addr, &packagesSend, &bytesSend);
-//            usleep(20);
         }
 
         close(fd);
