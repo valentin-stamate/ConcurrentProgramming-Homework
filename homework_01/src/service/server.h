@@ -9,8 +9,7 @@ private:
     const int protocol;
 public:
     static char filesPath[64];
-    static char dataset_01[64];
-    static char dataset_02[64];
+    static char dataset_0[64];
 
     Server(int port, int protocol);
 

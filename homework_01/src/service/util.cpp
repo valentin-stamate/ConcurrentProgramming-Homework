@@ -113,7 +113,15 @@ void Util::removeFiles(char *path) {
     fclose(file);
 }
 
-void Util::writeTo(int protocol, int fd, void* buffer, int bufferSize, sockaddr_in &addr) {
+void Util::writeTo(int protocol, int fd, void* buffer, int bufferSize, sockaddr_in &addr, int* packageCount, int* bytesCount) {
+    if (packageCount != NULL) {
+        (*packageCount)++;
+    }
+
+    if (bytesCount != NULL) {
+        (*bytesCount) += bufferSize;
+    }
+
     if (protocol == TCP) {
         write(fd, buffer, bufferSize);
         return;
@@ -126,7 +134,15 @@ void Util::writeTo(int protocol, int fd, void* buffer, int bufferSize, sockaddr_
     printf("Something went wrong with the protocol\n");
 }
 
-void Util::readFrom(int protocol, int fd, void* buffer, int bufferSize, sockaddr_in &addr) {
+void Util::readFrom(int protocol, int fd, void* buffer, int bufferSize, sockaddr_in &addr, int* packageCount, int* bytesCount) {
+    if (packageCount != NULL) {
+        (*packageCount)++;
+    }
+
+    if (bytesCount != NULL) {
+        (*bytesCount) += bufferSize;
+    }
+
     if (protocol == TCP) {
         read(fd, buffer, bufferSize);
         return;
