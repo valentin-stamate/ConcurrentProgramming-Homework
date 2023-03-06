@@ -10,6 +10,9 @@ int main(int argc, char** argv) {
     int datasetType = atoi(argv[5]);
     int acknowledge = atoi(argv[6]);
 
+    printf("Protocol: %d. Port: %d. Package size: %d. Dataset: %d. Acknowledge: %d",
+           protocol, port, packageSize, datasetType, acknowledge);
+
     Client client(ip, port, packageSize, datasetType, acknowledge);
 
     if (protocol == TCP) {

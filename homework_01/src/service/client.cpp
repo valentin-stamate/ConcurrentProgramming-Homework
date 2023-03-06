@@ -73,6 +73,8 @@ void Client::startUDP() {
 void Client::startJob(int protocol, int server_fd, sockaddr_in server_addr) {
     Util::removeFiles(filesPath);
 
+    printf("Inside protocol: %d\n", protocol);
+
     struct timeval stop, start;
     gettimeofday(&start, NULL);
     int packagesSend = 0;
@@ -135,7 +137,7 @@ void Client::startJob(int protocol, int server_fd, sockaddr_in server_addr) {
             Util::readFrom(protocol, server_fd, buffer, bytesRead, server_addr, &packagesReceived, &bytesReceived);
             write(fd, buffer, bytesRead);
 
-            usleep(20);
+//            usleep(20);
         }
 
         close(fd);

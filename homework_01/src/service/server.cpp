@@ -160,7 +160,7 @@ void Server::startJob(int protocol, int client_id, int client_fd, sockaddr_in cl
             openSuccess = 0;
         }
 
-        printf("[Client %d] Sending confirmation regarding the file opening\n", client_id);
+//        printf("[Client %d] Sending confirmation regarding the file opening\n", client_id);
         Util::writeTo(protocol, client_fd, &openSuccess, sizeof(int), client_addr, &packagesSend, &bytesSend);
 
         if (openSuccess == 0) {
@@ -189,7 +189,7 @@ void Server::startJob(int protocol, int client_id, int client_fd, sockaddr_in cl
 //            printf("[Client %d][%s][%.2f%%] Sending package %d of %dB with confirmation: %s\n", client_id,
 //                   fileName, 1.0f * j / packages * 100, j, PACKAGE_SIZE, packageCountConfirm == j ? okMessage : failMessage);
             Util::writeTo(protocol, client_fd, buffer, bytesRead, client_addr, &packagesSend, &bytesSend);
-            usleep(20);
+//            usleep(20);
         }
 
         close(fd);

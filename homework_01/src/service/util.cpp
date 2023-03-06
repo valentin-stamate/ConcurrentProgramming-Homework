@@ -131,7 +131,7 @@ void Util::writeTo(int protocol, int fd, void* buffer, int bufferSize, sockaddr_
         return;
     }
 
-    printf("Something went wrong with the protocol\n");
+    printf("Something went wrong with the protocol, received: %d\n", protocol);
 }
 
 void Util::readFrom(int protocol, int fd, void* buffer, int bufferSize, sockaddr_in &addr, int* packageCount, int* bytesCount) {
@@ -152,5 +152,5 @@ void Util::readFrom(int protocol, int fd, void* buffer, int bufferSize, sockaddr
         return;
     }
 
-    printf("Something went wrong with the protocol\n");
+    printf("Something went wrong with the protocol, received: %d\n", protocol);
 }
