@@ -6,6 +6,7 @@
 #include <a.out.h>
 #include <csignal>
 #include <netinet/in.h>
+#include <unistd.h>
 
 char* Util::getIp() {
     char cmd[100];
