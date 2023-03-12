@@ -5,6 +5,8 @@ Build all the sources using:```cmake . && make```
 
 Now you can execute the client and the serve: ```./server```, ```./client```.
 
+To find the server ip address: ```ifconfig | grep inet | grep 192 | xargs | cut -d' ' -f2```
+
 ## Docker
 * ```docker build -t homework_01 .```
 * ```docker run --name homework_01 -p 10000:10000 -d homework_01```
