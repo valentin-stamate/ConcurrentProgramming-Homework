@@ -1,0 +1,40 @@
+.chat-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr auto;
+  gap: 16px;
+  width: 1024px;
+  height: 100vh;
+}
+
+.message-container {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 16px;
+  overflow: auto;
+  padding: 12px;
+}
+
+.message {
+  display: flex;
+  background-color: #6b9dc4;
+  color: white;
+  border-radius: 32px;
+  padding: 16px;
+}
+
+.sending-container {
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: auto 128px;
+  gap: 16px;
+}
+
+.my-message {
+  display: flex;
+  background-color: #eeeeee;
+  color: #5b5b5b;
+  border-radius: 32px;
+  padding: 16px;
+  border: solid 1px #333333;
+}
