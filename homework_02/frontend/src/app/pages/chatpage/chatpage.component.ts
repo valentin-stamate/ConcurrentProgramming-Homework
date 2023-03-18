@@ -1,6 +1,8 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {SocketClient} from "../../service/socket-client";
 import {Message} from "../../interfaces/interfaces";
+import {Utils} from "../../service/utils";
+import {Subscription} from "rxjs";
 
 const messages: Message[] = [
   {
@@ -28,14 +30,30 @@ const messages: Message[] = [
 export class ChatPageComponent implements OnInit {
 
   messages: Message[] = [];
-  username: string = 'valstam';
+  username: string;
+
+  updateMessagesSubscription: Subscription = {} as any;
+
   @ViewChild('messageContainer') messageContainer: ElementRef = {} as ElementRef;
 
-  constructor(private socket: SocketClient) { }
+  constructor(private socketClient: SocketClient) {
+    const existingUsername = localStorage.getItem("username");
+
+    if (existingUsername == null) {
+      this.username = Utils.generateId(16);
+      localStorage.setItem("username", this.username);
+      return;
+    }
+
+    this.username = existingUsername;
+  }
 
   ngOnInit(): void {
-    this.socket.sendMessage();
-    this.fetchMessages();
+    this.updateMessagesSubscription = this.socketClient.updateMessagesEvent.subscribe((data) => {
+      this.fetchMessages(data);
+    });
+
+    this.socketClient.sendGetMessages();
   }
 
   onSendMessage(event: Event, form: HTMLFormElement, input: HTMLInputElement) {
@@ -51,13 +69,20 @@ export class ChatPageComponent implements OnInit {
       return;
     }
 
-    messages.push(messageObject);
-    this.fetchMessages();
+    this.socketClient.sendMessage(messageObject);
+
+    this.socketClient.sendGetMessages();
   }
 
-  fetchMessages() {
+  fetchMessages(messages: Message[]) {
     this.messages = JSON.parse(JSON.stringify(messages));
     this.messages.reverse();
+  }
+
+  onSetUsername(username: string) {
+    this.username = username;
+    localStorage.setItem("username", this.username);
+    location.href = '/';
   }
 
 }
