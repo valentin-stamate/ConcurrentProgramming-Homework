@@ -1,6 +1,12 @@
 <div class="flex flex-col items-center">
   <div class="layout">
 
+    <div class="flex justify-between items-center text-sm">
+      <div>Users: <b>{{status.users}}</b></div>
+      <div>Messages: <b>{{status.messages}}</b></div>
+      <div>Last Update: <b>{{status.datetime}}</b></div>
+    </div>
+
     <div class="flex justify-between align-center w-[1024px] p-4">
       <div class="flex gap-4">
         <input type="text" name="message" #usernameInput class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">

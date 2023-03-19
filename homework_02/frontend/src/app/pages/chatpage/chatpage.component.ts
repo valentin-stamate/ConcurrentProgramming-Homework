@@ -1,8 +1,9 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {SocketClient} from "../../service/socket-client";
-import {Message} from "../../interfaces/interfaces";
+import {Message, Status} from "../../interfaces/interfaces";
 import {Utils} from "../../service/utils";
 import {Subscription} from "rxjs";
+import axios from 'axios';
 
 const messages: Message[] = [
   {
@@ -31,6 +32,7 @@ export class ChatPageComponent implements OnInit {
 
   messages: Message[] = [];
   username: string;
+  status: Status = {} as any;
 
   updateMessagesSubscription: Subscription = {} as any;
 
@@ -54,6 +56,9 @@ export class ChatPageComponent implements OnInit {
     });
 
     this.socketClient.sendGetMessages();
+
+    this.updateStatistics();
+    this.startUpdateStatus();
   }
 
   onSendMessage(event: Event, form: HTMLFormElement, input: HTMLInputElement) {
@@ -83,6 +88,19 @@ export class ChatPageComponent implements OnInit {
     this.username = username;
     localStorage.setItem("username", this.username);
     location.href = '/';
+  }
+
+  async updateStatistics() {
+    const response = await axios.get('https://me3okvdx0k.execute-api.eu-central-1.amazonaws.com/default/MessageAndUserStatusNode');
+    this.status = response.data;
+  }
+
+  startUpdateStatus(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      return setInterval(async () => {
+        await this.updateStatistics();
+      }, 2500);
+    });
   }
 
 }
