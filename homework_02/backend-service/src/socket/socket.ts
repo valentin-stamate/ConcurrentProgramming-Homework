@@ -8,7 +8,7 @@ export async function initSocketIO(app: Express) {
     const httpServer = http.createServer(app);
     const io = new Server(httpServer, {
         cors: {
-            origin: "http://localhost:4200",
+            origin: "*",
             methods: ["GET", "POST"],
             allowedHeaders: ["*"],
             credentials: true,
