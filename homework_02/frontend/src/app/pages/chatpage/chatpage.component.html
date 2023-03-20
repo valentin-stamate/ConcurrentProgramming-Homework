@@ -1,16 +1,40 @@
-<div class="flex justify-center">
-  <div class="chat-container bg-slate-50 p-8">
-    <div class="message-container" #messageContainer>
-      <div *ngFor="let message of messages" class="flex" [ngClass]="{'flex-row-reverse': username === message.username}">
-        <div class="message" [ngClass]="{'my-message' : username === message.username}">{{message.message}}</div>
-      </div>
+<div class="flex flex-col items-center">
+  <div class="layout">
+
+    <div class="flex justify-between items-center text-sm">
+      <div>Users: <b>{{status.users}}</b></div>
+      <div>Messages: <b>{{status.messages}}</b></div>
+      <div>Last Update: <b>{{status.datetime}}</b></div>
     </div>
 
-    <form class="sending-container" #form (submit)="onSendMessage($event, form, messageInput)">
-      <input type="text" name="message" #messageInput class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-      <button type="submit" class="bg-[#6b9dc4] hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        Button
-      </button>
-    </form>
+    <div class="flex justify-between align-center w-[1024px] p-4">
+      <div class="flex gap-4">
+        <input type="text" name="message" #usernameInput class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+        <button class="bg-[#6b9dc4] hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" (click)="onSetUsername(usernameInput.value)">
+          Set
+        </button>
+      </div>
+      <div><strong>{{username}}</strong></div>
+    </div>
+
+    <div class="chat-container p-8 w-[1024px]">
+      <div class="message-container" #messageContainer>
+        <div *ngFor="let message of messages" class="flex" [ngClass]="{'flex-row-reverse': username === message.username}">
+          <div class="message" [ngClass]="{'my-message' : username === message.username}">
+            <div>{{message.message}}</div>
+            <div class="font-medium text-sm">{{message.username}}</div>
+            <div class="font-medium text-sm">{{message.date}}</div>
+          </div>
+        </div>
+      </div>
+
+      <form class="sending-container" #form (submit)="onSendMessage($event, form, messageInput)">
+        <input type="text" name="message" #messageInput class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+        <button type="submit" class="bg-[#6b9dc4] hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          Button
+        </button>
+      </form>
+    </div>
+
   </div>
 </div>

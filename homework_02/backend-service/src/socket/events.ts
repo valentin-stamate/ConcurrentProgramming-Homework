@@ -1,3 +1,5 @@
 export enum Events {
-    MESSAGE = 'message',
+    GET_MESSAGES = 'get-messages',
+    POST_MESSAGE = 'post-message',
+    UPDATE_MESSAGES = 'update-messages',
 }

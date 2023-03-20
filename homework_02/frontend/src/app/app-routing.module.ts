@@ -5,7 +5,7 @@ import {SocketIoConfig, SocketIoModule} from "ngx-socket-io";
 const routes: Routes = [];
 
 const config: SocketIoConfig = {
-  url: 'http://localhost:8081',
+  url: 'http://18.184.112.27:8081',
   options: {},
 };
 

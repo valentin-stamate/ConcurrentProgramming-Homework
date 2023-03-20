@@ -3,3 +3,9 @@ export interface Message {
   message: string;
   date: Date;
 }
+
+export interface Status {
+  users: string;
+  messages: string;
+  datetime: string;
+}
