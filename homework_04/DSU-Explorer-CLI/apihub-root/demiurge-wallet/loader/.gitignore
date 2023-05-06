@@ -1,0 +1,12 @@
+/node_modules
+/.idea
+loader-config.local.json
+/bundles
+/swBoot.js
+/swPwa.js
+/workbox-*.js
+/config-constants.js
+/environment.js
+!/workbox-config.js
+package-lock.json
+/assets/images-pwa
