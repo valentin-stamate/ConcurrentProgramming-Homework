@@ -1,7 +1,0 @@
-.idea
-package-lock.json
-env.json.devel
-apihub-root/internal-volume/domains
-apihub-root/external-volume/domains
-apihub-root/external-volume/wallets
-apihub-root/bundles
