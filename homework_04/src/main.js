@@ -1,5 +1,7 @@
 require("../opendsu-sdk/psknode/bundles/openDSU");
 
+const fs = require("fs");
+
 class OpenDSUClient {
 
     opendsu;
@@ -118,7 +120,16 @@ const readInput = async (question) => {
 const UserActions = {
     READ_FILE: "read",
     WRITE_FILE: "write",
+    UPLOAD_FILE: "upload",
     READ_ALL: "all",
+}
+
+async function readLocalFile(path) {
+    if (!fs.existsSync(path)) {
+        return null
+    }
+
+    return fs.readFileSync(path, 'utf8')
 }
 
 async function main() {
@@ -126,18 +137,45 @@ async function main() {
     await openDSUClient.createDSU();
 
     while (true) {
-        console.log("Hello! The command are: read write all");
+        console.log("Hello! The command are: read write upload all");
         const input = await readInput("Write your command: ");
+
+        let fileName = null
+        let filePath = null
+        let fileData = null
 
         switch (input) {
             case UserActions.READ_FILE:
-                const fileName = await readInput("Insert file name: ");
-                const fileData = await openDSUClient.readFile(fileName);
+                fileName = await readInput("Insert file name: ");
+                fileData = await openDSUClient.readFile(fileName);
 
                 console.log(`The content of ${fileName} is:`);
                 console.log(fileData);
                 break;
             case UserActions.WRITE_FILE:
+                fileName = await readInput("Insert file name: ");
+                fileData = await readInput("Content of file: ")
+
+                await openDSUClient.writeFile(fileName, fileData)
+                break;
+            case UserActions.UPLOAD_FILE:
+                filePath = await readInput("Path to local file: ")
+
+                fileName = filePath
+                if (fileName.includes('\\')) {
+                    fileName = filePath.split("\\")[filePath.split("\\").length - 1]
+                }
+                else if (fileName.includes("/")) {
+                    fileName = filePath.split("/")[filePath.split("/").length - 1]
+                }
+                fileData = await readLocalFile(filePath)
+
+                if (fileData != null) {
+                    await openDSUClient.writeFile(fileName, fileData)
+                }
+                else {
+                    console.log('File ' + filePath + ' does not exist!')
+                }
                 break;
             case UserActions.READ_ALL:
                 const allFilesList = await openDSUClient.readAllFilePaths();
