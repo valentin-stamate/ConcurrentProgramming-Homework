@@ -54,9 +54,9 @@ class OpenDSUClient {
                             return;
                         }
 
-                        anotherDSUInstance.readFile(fileName, (err, data)=>{
+                        anotherDSUInstance.readFile(fileName, (err, data) => {
                             if (err) {
-                                reject(err);
+                                reject(new Error('File Does not exist in the DSU'));
                                 return;
                             }
 
@@ -74,7 +74,7 @@ class OpenDSUClient {
             setTimeout(() => {
                 this.dsuInstance.delete(fileName, (err) => {
                     if (err) {
-                        reject(err);
+                        reject(new Error("File does not exist"));
                         return;
                     }
 
@@ -121,7 +121,9 @@ const UserActions = {
     READ_FILE: "read",
     WRITE_FILE: "write",
     UPLOAD_FILE: "upload",
+    DELETE_FILE: "delete",
     READ_ALL: "all",
+    HELP: "help"
 }
 
 async function readLocalFile(path) {
@@ -137,26 +139,33 @@ async function main() {
     await openDSUClient.createDSU();
 
     while (true) {
-        console.log("Hello! The command are: read write upload all");
+        console.log("Hello! Type help to display a list of commands");
         const input = await readInput("Write your command: ");
 
         let fileName = null
         let filePath = null
         let fileData = null
 
-        switch (input) {
+        switch (input.trim()) {
             case UserActions.READ_FILE:
                 fileName = await readInput("Insert file name: ");
-                fileData = await openDSUClient.readFile(fileName);
-
-                console.log(`The content of ${fileName} is:`);
-                console.log(fileData);
+                try {
+                    fileData = await openDSUClient.readFile(fileName);
+                    console.log(`The content of ${fileName} is:`);
+                    console.log(fileData);
+                } catch (error) {
+                    console.log(error.message)
+                }
                 break;
+
             case UserActions.WRITE_FILE:
                 fileName = await readInput("Insert file name: ");
                 fileData = await readInput("Content of file: ")
-
-                await openDSUClient.writeFile(fileName, fileData)
+                try {
+                    await openDSUClient.writeFile(fileName, fileData)
+                } catch (error) {
+                    console.log(error.message)
+                }
                 break;
             case UserActions.UPLOAD_FILE:
                 filePath = await readInput("Path to local file: ")
@@ -164,16 +173,18 @@ async function main() {
                 fileName = filePath
                 if (fileName.includes('\\')) {
                     fileName = filePath.split("\\")[filePath.split("\\").length - 1]
-                }
-                else if (fileName.includes("/")) {
+                } else if (fileName.includes("/")) {
                     fileName = filePath.split("/")[filePath.split("/").length - 1]
                 }
                 fileData = await readLocalFile(filePath)
 
                 if (fileData != null) {
-                    await openDSUClient.writeFile(fileName, fileData)
-                }
-                else {
+                    try {
+                        await openDSUClient.writeFile(fileName, fileData)
+                    } catch (error) {
+                        console.log(error.message)
+                    }
+                } else {
                     console.log('File ' + filePath + ' does not exist!')
                 }
                 break;
@@ -185,10 +196,30 @@ async function main() {
                     break;
                 }
 
-                console.log('The list of the found:')
+                console.log('The list of the found(' + allFilesList.size + '):')
                 for (const fileName of allFilesList) {
                     console.log(fileName);
                 }
+
+                break;
+            case UserActions.DELETE_FILE:
+                fileName = await readInput("Insert file name: ");
+                // fileData = await readInput("Content of file: ")
+                try {
+                    await openDSUClient.deleteFile(fileName)
+                } catch (error) {
+                    console.log(error.message)
+                }
+                break;
+            case UserActions.HELP:
+                console.log('Available commands:');
+                console.log('\tread   - read a file from DSU, user will be prompted for a filename ');
+                console.log('\twrite  - write a file to DSU, user will be prompted for a filename and content ');
+                console.log('\tupload - upload a file to DSU, user will be prompted for a filepath ');
+                console.log('\tdelete - removes a file from the DSU, user will be prompted for a filename ');
+                console.log('\tall    - read all files from DSU');
+                console.log('\thelp   - displays list of available commands');
+
 
                 break;
             default:
