@@ -1,7 +1,7 @@
 {
-  "name": "OpenDSU Client",
+  "name": "OpenDSU Explorer",
   "version": "0.0.1",
-  "description": "OpenDSU Client",
+  "description": "OpenDSU Explorer",
   "scripts": {
     "install-demiurge": "node ./node_modules/octopus/scripts/setEnv --file=../../../env.json \"node ./bin/octopusRun.js install-demiurge\"",
     "install-demo": "node ./node_modules/octopus/scripts/setEnv --file=../../../env.json \"node ./node_modules/octopus/scripts/run install-demo\"",
