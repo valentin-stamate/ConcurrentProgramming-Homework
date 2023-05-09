@@ -24,4 +24,4 @@ $ npm run build-all
 * all: read all files from DSU
 * help: displays list of available commands
 
-Team: Stamate Valentin, Migai Cristian-Laurentiu, Ursu Alin
+Team: Stamate Valentin, Mihai Cristian-Laurentiu, Ursu Alin
